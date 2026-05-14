@@ -4,6 +4,7 @@ x-spark-common: &spark-common
     - ./jobs:/opt/bitnami/spark/jobs
     - ./mnt/checkpoints:/mnt/spark-checkpoints
     - ./mnt/spark-state:/mnt/spark-state
+    - .:/app  # ✅ ADICIONADO: mapeia a raiz do projeto para /app no container
   networks:
     - ntitsolutions
 
@@ -199,6 +200,7 @@ services:
 
   spark-master:
     <<: *spark-common
+    hostname: spark-master
     container_name: spark-master
     command: bin/spark-class org.apache.spark.deploy.master.Master
     ports:
@@ -207,6 +209,7 @@ services:
       - "4040:4040"
     environment:
       SPARK_MODE: master
+      SPARK_MASTER_HOST: spark-master
 
   spark-worker: &spark-worker-image
     <<: *spark-common
