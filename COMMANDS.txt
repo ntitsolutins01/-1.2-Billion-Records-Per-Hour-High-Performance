@@ -1,0 +1,117 @@
+================================================================================
+  PIPELINE DE STREAMING FINANCEIRO — KAFKA + SPARK
+  Sequência de comandos para reinicializar e rodar o projeto no PowerShell
+================================================================================
+
+REQUISITOS:
+  - Docker Desktop rodando
+  - Python instalado no host
+  - Executar os comandos no terminal do PyCharm (PowerShell)
+  - Estar na raiz do projeto
+
+================================================================================
+PASSO A PASSO — RESTART COMPLETO
+================================================================================
+
+# ----------------------------------------------------------------
+# PASSO 1 — Parar todos os containers
+# ----------------------------------------------------------------
+docker compose down
+
+# ----------------------------------------------------------------
+# PASSO 2 — Limpar volumes de checkpoint (evita erros de retomada)
+# ----------------------------------------------------------------
+docker volume rm kafkasparkarch_spark-checkpoints 2>$null
+
+# ----------------------------------------------------------------
+# PASSO 3 — Subir a infraestrutura (Kafka + Spark)
+# ----------------------------------------------------------------
+docker compose up -d
+
+# ----------------------------------------------------------------
+# PASSO 4 — Aguardar a inicialização dos brokers (~15 segundos)
+# ----------------------------------------------------------------
+Start-Sleep -Seconds 15
+
+# ----------------------------------------------------------------
+# PASSO 5 — Criar os tópicos Kafka
+# ----------------------------------------------------------------
+
+# Tópico principal de transações (5 partições, replication factor 3)
+docker exec kafka-broker-1 /opt/kafka/bin/kafka-topics.sh `
+  --bootstrap-server kafka-broker-1:19092 --create `
+  --topic financial_transactions `
+  --partitions 5 --replication-factor 3 --if-not-exists
+
+# Tópico de agregações (3 partições, replication factor 2)
+docker exec kafka-broker-1 /opt/kafka/bin/kafka-topics.sh `
+  --bootstrap-server kafka-broker-1:19092 --create `
+  --topic transaction_aggregates `
+  --partitions 3 --replication-factor 2 --if-not-exists
+
+# Tópico de anomalias (3 partições, replication factor 2)
+docker exec kafka-broker-1 /opt/kafka/bin/kafka-topics.sh `
+  --bootstrap-server kafka-broker-1:19092 --create `
+  --topic transaction_anomalies `
+  --partitions 3 --replication-factor 2 --if-not-exists
+
+# ----------------------------------------------------------------
+# PASSO 6 — Rodar o Producer Python (no host)
+# ----------------------------------------------------------------
+python main.py
+
+# ----------------------------------------------------------------
+# PASSO 7 — Submeter o job Spark (no container)
+# ----------------------------------------------------------------
+docker exec spark-master spark-submit `
+  --master spark://spark-master:7077 `
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.1 `
+  /app/spark_processor.py
+
+================================================================================
+COMANDOS ÚTEIS DE MONITORAMENTO
+================================================================================
+
+# Ver logs do Kafka Broker 1
+docker logs kafka-broker-1 -f
+
+# Ver logs do Spark Master
+docker logs spark-master -f
+
+# Listar tópicos existentes
+docker exec kafka-broker-1 /opt/kafka/bin/kafka-topics.sh `
+  --bootstrap-server kafka-broker-1:19092 --list
+
+# Ver containers rodando
+docker ps
+
+# Ver volumes Docker ativos
+docker volume ls
+
+================================================================================
+COMANDOS ÚTEIS DE LIMPEZA
+================================================================================
+
+# Parar tudo e remover volumes (reset total)
+docker compose down -v
+
+# Remover apenas o volume de checkpoints
+docker volume rm kafkasparkarch_spark-checkpoints 2>$null
+
+# Remover imagens não utilizadas
+docker image prune -f
+
+================================================================================
+OBSERVAÇÕES
+================================================================================
+
+  - Rodar os PASSOS 1 ao 5 em sequência antes de iniciar o producer
+  - O PASSO 6 (producer) e PASSO 7 (spark-submit) podem rodar em
+    terminais separados dentro do PyCharm simultaneamente
+  - Em caso de erro de checkpoint, repita os PASSOS 1 e 2 antes de subir
+  - replication-factor nao pode ser maior que o numero de brokers ativos
+
+================================================================================
+  Projeto: High Performance Data Engineering — Kafka + Spark
+  GitHub:  https://lnkd.in/dHWmNitc
+================================================================================
