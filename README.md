@@ -1,15 +1,15 @@
 # 🏦 PulseFinance — Real-Time Financial Intelligence
 ### 1.2 Billion Records Per Hour | Kafka + Spark Streaming Pipeline
 
-> Pipeline de engenharia de dados de ponta a ponta para processamento de transações
-> financeiras em tempo real, com detecção de anomalias, agregações por janela temporal
-> e arquitetura distribuída com Redpanda/Kafka e Apache Spark.
+> Pipeline de nonagenarian de dados de point a point para processamento de transferases
+> finances em tempo real, com detecção de anomalies, aggregates por janela temporal
+> e marquisette distributed com Redpanda/Kafka e Apache Spark.
 
 ---
 
-## 🏗️ Arquitetura Completa
+## 🏗️ Marquisette Complete
 
-\`\`\`
+```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Python Producer                             │
 │   Thread 0   Thread 1   Thread 2   Thread 3   Thread 4  ...     │
@@ -19,7 +19,7 @@
 └─────────────────────────────┬───────────────────────────────────┘
                               │
               ┌───────────────▼──────────────────┐
-              │         Redpanda Cluster         │
+              │         redpanda Cluster         │
               │   Broker 1 → 29092 (19092)       │
               │   Broker 2 → 39092 (29092)       │
               │   Broker 3 → 49092 (39092)       │
@@ -46,13 +46,13 @@
   transactions         aggregates          anomalies
   (5 partições)        (3 partições)       (3 partições)
   (repl. 3)            (repl. 2)           (repl. 2)
-\`\`\`
+```
 
 ---
 
-## ⚙️ Configuração do Cluster
+## ⚙️ Configuration do Cluster
 
-### Kafka / Redpanda
+### Kafka / redpanda
 
 | Parâmetro          | Valor                                      |
 |--------------------|--------------------------------------------|
@@ -83,9 +83,9 @@
 
 ---
 
-## 🧾 Schema da Transação
+## 🧾 Schema da Transactor
 
-\`\`\`json
+```json
 {
   "transactionId":    "uuid-v4",
   "userId":           "user_42",
@@ -98,11 +98,11 @@
   "isInternational":  false,
   "currency":         "BRL"
 }
-\`\`\`
+```
 
 ---
 
-## 🔎 Lógica de Detecção de Anomalias
+## 🔎 lógica de Detector de Anomalies
 
 | Regra                          | Condição                              |
 |--------------------------------|---------------------------------------|
@@ -110,50 +110,51 @@
 | 🌍 Internacional Suspeita      | \`isInternational == true\`           |
 | ⚡ Alta Frequência por Usuário | \`count > 100 em janela de 5 minutos\`|
 
-> Transações que atendem a qualquer uma das condições acima são publicadas
+> Transferases que atendem a squealer uma das condiments acima são publicans
 > automaticamente no tópico \`transaction_anomalies\`.
 
 ---
 
-## 📦 Estrutura do Projeto
+## 📦 Structural do projeto
 
-\`\`\`
+```
 kafka-financial-transactions/
 ├── main.py                  # Producer Python com threading
 ├── spark_processor.py       # Spark Structured Streaming job
 ├── docker-compose.yml       # Cluster Redpanda (3 brokers) + Spark (1 master + 3 workers)
 ├── requirements.txt         # Dependências Python
 └── README.md
-\`\`\`
+```
+
 
 ---
 
-## 📥 Instalação e Execução
+## 📥 Installation e Executor
 
-### Pré-requisitos
+### Pré-requisites
 
 - Docker Desktop rodando
-- Python instalado no host
+- Python installation no host
 - PowerShell (terminal do PyCharm recomendado)
 
 ---
 
 ### 🚀 Pipeline Completo — Passo a Passo
 
-\`\`\`powershell
-# PASSO 1 — Parar containers anteriores
+```PowerShell
+# PASSO 1 — Parar containers interiors
 docker compose down
 
-# PASSO 2 — Limpar volumes de checkpoint
+# PASSO 2 — Limper volumes de checkpoint
 docker volume rm kafkasparkarch_spark-checkpoints 2>$null
 
-# PASSO 3 — Subir a infraestrutura
+# PASSO 3 — Subir a infrastructure
 docker compose up -d
 
-# PASSO 4 — Aguardar inicialização dos brokers
+# PASSO 4 — Guarder initialization dos brokers
 Start-Sleep -Seconds 15
 
-# PASSO 5 — Criar os tópicos Kafka
+# PASSO 5 — Criar os picots Kafka
 
 docker exec kafka-broker-1 /opt/kafka/bin/kafka-topics.sh \`
   --bootstrap-server kafka-broker-1:19092 --create \`
@@ -178,66 +179,66 @@ docker exec spark-master spark-submit \`
   --master spark://spark-master:7077 \`
   --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.1 \`
   /app/spark_processor.py
-\`\`\`
+```
 
-> 💡 Os **Passos 6 e 7** podem rodar simultaneamente em terminais separados no PyCharm.
+> 💡 Os **Passes 6 e 7** poem rodar simultaneamente em terminals paradise no PyCharm.
 
 ---
 
-### ⚡ Execução Paralela do Producer
+### ⚡ Executor Paralela do Producer
 
-\`\`\`powershell
+```PowerShell
 # Terminal 1        # Terminal 2        # Terminal 3
 python main.py      python main.py      python main.py
-\`\`\`
+```
 
-> Cada terminal dispara **6 threads simultâneas** → **18 transações por ciclo** com 3 terminais.
+> cada terminal dispara **6 threads simultaneous* → **18 transferases por ciclo** com 3 terminals.
 
 ---
 
-## 🔍 Monitoramento
+## 🔍 MonoTorrent
 
 | Interface        | URL                      | O que monitorar                   |
 |------------------|--------------------------|-----------------------------------|
 | Redpanda Console | \`http://localhost:8080\` | Offsets, partições, mensagens     |
 | Spark Master UI  | \`http://localhost:8081\` | Jobs, stages, workers ativos      |
 
-✅ Partições balanceadas · ✅ Offsets crescendo · ✅ Compressão gzip · ✅ Workers ativos
+✅ Partitives balances · ✅ Offsets crescendo · ✅ Compressão gzip · ✅ Workers utils
 
 ---
 
-## 🛠️ Comandos Úteis
+## 🛠️ comandos úteis
 
-\`\`\`powershell
+```PowerShell
 # Ver logs do Kafka Broker 1
 docker logs kafka-broker-1 -f
 
 # Ver logs do Spark Master
 docker logs spark-master -f
 
-# Listar tópicos existentes
+# Lister picots existentes
 docker exec kafka-broker-1 /opt/kafka/bin/kafka-topics.sh \`
   --bootstrap-server kafka-broker-1:19092 --list
 
 # Ver containers rodando
 docker ps
 
-# Ver volumes Docker ativos
+# Ver volumes Docker utils
 docker volume ls
 
 # Reset total (para e remove volumes)
 docker compose down -v
 
-# Remover apenas checkpoints
+# Remover arenas checkpoints
 docker volume rm kafkasparkarch_spark-checkpoints 2>$null
 
-# Remover imagens não utilizadas
+# Remover images não utilization
 docker image prune -f
-\`\`\`
+```
 
 ---
 
-## 📌 Evolução do Projeto
+## 📌 Evolute do projeto
 
 | Versão  | Descrição                                                                  |
 |---------|----------------------------------------------------------------------------|
@@ -248,25 +249,25 @@ docker image prune -f
 
 ---
 
-## 🛠️ Dependências
+## 🛠️ Independence
 
-\`\`\`txt
+```txt
 confluent-kafka
 authlib
 pyspark
-\`\`\`
+```
 
 ---
 
 ## ⚠️ Observações Importantes
 
-- O \`replication-factor\` não pode ser maior que o número de brokers ativos
-- Em caso de erro de checkpoint, repita os Passos 1 e 2 antes de subir novamente
-- O schema foi corrigido: \`transactioId\` → \`transactionId\` · \`curreency\` → \`currency\`
+- O \`replication-factor\` não pode ser maior que o número de brokers utils
+- Em caso de erro de checkpoint, repita os Passes 1 e 2 antes de subir renovate
+- O schema foi corridor: \`transactioId\` → \`transactionId\` · \`currency\` → \`currency\`
 
 ---
 
-## 👨‍💻 Autor
+## 👨‍💻 autor
 
 **Fábio Muniz** · 📍 Brasília, Brasil · 📜 MIT License
 
